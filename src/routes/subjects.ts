@@ -10,8 +10,11 @@ router.get("/", async (req, res) => {
     // /api/subjects?search=
     // /api/subjects?department=
     const { search, department, page = 1, limit = 10 } = req.query;
-    const currentPage = Math.max(1, +page);
-    const limitPerPage = Math.max(1, +limit); // limitPerPage is at least 1
+    const currentPage = Math.max(1, parseInt(String(page), 10) || 1);
+    const limitPerPage = Math.min(
+      Math.max(1, parseInt(String(limit), 10) || 10),
+      100,
+    ); // limitPerPage is at least 1
 
     const offset = (currentPage - 1) * limitPerPage; // how many records to skip to get to the next page
 
@@ -45,7 +48,7 @@ router.get("/", async (req, res) => {
     const subjectList = await db
       .select({
         ...getTableColumns(subjects),
-        deparment: { ...getTableColumns(departments) },
+        department: { ...getTableColumns(departments) },
       })
       .from(subjects)
       .leftJoin(departments, eq(subjects.departmentId, departments.id))
